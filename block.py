@@ -1,15 +1,18 @@
 import hashlib
 import time
+import binascii
 
 
 # classe pra gerar um bloco
 class Block:
-    def __init__(self, index, previousHash, timestamp, data, hash):
+    def __init__(self, index, previousHash, timestamp, data, hash, difficulty, nonce):
         self.index = index
         self.previousHash = previousHash
         self.timestamp = timestamp
         self.data = data
         self.hahs = hash
+        self.difficulty = difficulty
+        self.nonce = nonce
 
 
 # classe principal da blockchain
@@ -45,9 +48,25 @@ class Blockchain:
             return False
         return True
 
+    def hashMatchesDifficulty(self, hash, difficulty):
+        hashBinary = binascii.unhexlify(hash)
+        requiredPrefix = '0' * int(difficulty)
+        return hashBinary.startswith(requiredPrefix)
 
-def calculateHash(index, previousHash, timestamp, data):
-    return hashlib.sha256(str(index) + previousHash + str(timestamp) + data).hexdigest()
+    def findBlock(self, index, previousHash, timestamp, data, difficulty):
+        nonce = 0
+        while True:
+            hash = self.calculateHash(
+                index, previousHash, timestamp, data, difficulty, nonce)
+            if self.hashMatchesDifficulty(hash, difficulty):
+                block = Block(index, previousHash, timestamp,
+                              data, difficulty, nonce)
+                return block
+            nonce += 1
+
+
+def calculateHash(index: int, previousHash: str, timestamp: int, data: str, difficulty: int, nonce: int) -> str:
+    return hashlib.sha256((str(index) + previousHash + str(timestamp) + data + str(difficulty) + str(nonce)).encode('utf-8')).hexdigest()
 
 
 timestamp = int(round(time.time() * 1000))
