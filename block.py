@@ -10,7 +10,7 @@ class Block:
         self.previousHash = previousHash
         self.timestamp = timestamp
         self.data = data
-        self.hahs = hash
+        self.hash = hash
         self.difficulty = difficulty
         self.nonce = nonce
 
@@ -21,6 +21,8 @@ class Blockchain:
         # armazenamento de blocos da blockchain, onde os blocos ficam armazenados
         self.__chain = []
         self.__chain.append(genesisBlock)
+        self.DIFFICULTY_AJUSTMENT = 10
+        self.BLOCK_INTERVAL = 120
 
     # pegar o último bloco na blockchain
     def getLatestBlock(self):
@@ -63,6 +65,24 @@ class Blockchain:
                               data, difficulty, nonce)
                 return block
             nonce += 1
+
+    def getDifficulty(self):
+        latestBlock = self.getLatestBlock()
+        if latestBlock.index % self.DIFFICULTY_AJUSTMENT == 0 and latestBlock.index != 0:
+            return self.getAjustedDifficulty()
+        return latestBlock.difficulty
+
+    def getAjustedDifficulty(self):
+        latestBlock = self.getLatestBlock()
+        previousAjustmentBlock = self.blockchain[len(
+            self.blockchain) - self.DIFFICULTY_AJUSTMENT]
+        timeExpected = self.BLOCK_INTERVAL * self.DIFFICULTY_AJUSTMENT
+        timeTake = latestBlock.timestamp - prevAjustmentBlock.timestamp
+        if timeTake < timeExpected * 2:
+            return preAjustmentBlock.difficulty + 1
+        elif timeTake > timeExpected * 2:
+            return prevAdjustmentBlock.difficulty - 1
+        return prevAjustmentBlock.difficulty
 
 
 def calculateHash(index: int, previousHash: str, timestamp: int, data: str, difficulty: int, nonce: int) -> str:
